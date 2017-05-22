@@ -54,7 +54,9 @@ sleep 0.5
 }
 
 Comprobacion(){
-	
+echo -en "\e[0;37m	  Programas"
+echo 
+
 echo -en "\e[0;32m hping3......."
 if ! hash hping3 2>/dev/null ; then
 	echo -e "\e[0;37m No esta instalado"
@@ -141,12 +143,12 @@ esac
 
 Busqueda(){
 
-rm -rf /tmp/ip-morto/objetivo 2>/dev/null
 rm -rf /tmp/ip-morto/objetivos 2>/dev/null 
 rm -rf /tmp/ip-morto/arp 2>/dev/null 
 rm -rf /tmp/ip-morto/nmap 2>/dev/null 
-rm -rf /tmp/ip-morto/so 2>/dev/null
-rm -rf /tmp/ip-morto/list 2>/dev/null
+rm -rf /tmp/ip-morto/ip 2>/dev/null
+rm -rf /tmp/ip-morto/mac 2>/dev/null
+rm -rf /tmp/ip-morto/objetivo 2>/dev/null 
 
 echo -en " \e[0;31m1 \e[0;37m nmap"
 echo
@@ -156,17 +158,11 @@ echo
 echo -en "\e[0;32m Seleccione el metodo de busqueda\e[0;31m =>\e[0;37m " && read busqueda
 
 case $busqueda in
-	1) echo; echo " A seleccionado nmap"; sleep 02; nmap -sP -PR 192.168.0/21 2>/dev/null > /tmp/ip-morto/nmap; grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}|((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])' /tmp/ip-morto/nmap > /tmp/ip-morto/list && awk 'ORS=NR%2?FS:RS' /tmp/ip-morto/list > /tmp/ip-morto/lista | grep -oP "(?<=for )[^ ]+" /tmp/ip-morto/nmap > /tmp/ip-morto/so; ip=$( awk "{ print $1 }" /tmp/ip-morto/lista ); mac=$( awk "{ print $2 }" /tmp/ip-morto/lista ); so=$( awk "{ print $1 }" /tmp/ip-morto/so ) 2>/dev/null; paste -d " " /tmp/ip-morto/lista /tmp/ip-morto/so > /tmp/ip-morto/objetivo;;
-	2) echo; echo " A seleccionado arp-scan"; sleep 02; arp-scan --interface=$INTER --localnet 2>/dev/null > /tmp/ip-morto/arp; sed -e '1,2d' -e '/packets/d' -e '/Ending/d' -e '/^$/d' /tmp/ip-morto/arp > /tmp/ip-morto/objetivo 2>/dev/null;;
+	1) echo; echo " A seleccionado nmap"; sleep 02; clear; Titulo; echo " Buscando conexiones puede tardar un poco"; nmap -sP -PR 192.168.0/21 2>/dev/null > /tmp/ip-morto/nmap; awk '/is up/ {print up}; {gsub (/\(|\)/,""); up = $NF}' /tmp/ip-morto/nmap > /tmp/ip-morto/ip; awk '/Address/ {print $3" "$4$5$6$7$8$9}' /tmp/ip-morto/nmap > /tmp/ip-morto/mac; paste -d " " /tmp/ip-morto/ip /tmp/ip-morto/mac > /tmp/ip-morto/objetivo 2>/dev/null;;
+	2) echo; echo " A seleccionado arp-scan"; sleep 02; clear; Titulo; echo " Buscando conexiones puede tardar un poco"; arp-scan --interface=$INTER --localnet 2>/dev/null > /tmp/ip-morto/arp; sed -e '1,2d' -e '/packets/d' -e '/Ending/d' -e '/^$/d' /tmp/ip-morto/arp > /tmp/ip-morto/objetivo 2>/dev/null;;
 	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
 	*[^$count]*|"") echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Busqueda;;
 esac
-
-clear
-Titulo
-
-echo " Buscando conexiones puede tardar un poco"
-sleep 02
 
 Objetivos
 
@@ -174,10 +170,12 @@ Objetivos
 
 Objetivos(){
 
+rm -rf /tmp/ip-morto/objetivos 2>/dev/null 
+
 clear
 Titulo
 
-obj=$( column -t /tmp/ip-morto/objetivo >> /tmp/ip-morto/objetivos )
+obj=$( column -t /tmp/ip-morto/objetivo > /tmp/ip-morto/objetivos )
 
 if [ -s /tmp/ip-morto/objetivos ]; then
 		count=0 
