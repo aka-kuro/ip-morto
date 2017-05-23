@@ -135,6 +135,7 @@ echo -en "\e[0;32m Seleccione el numero de la interfaz a auditar\e[0;31m =>\e[0;
 
 case $interfaz in
 	[1-2]) INTER=$( head -$interfaz /tmp/ip-morto/Interfaz | tail -1 ); echo; echo  " A seleccionado $INTER"; sleep 02; clear; Titulo; Busqueda;;
+	   22) echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Interfaz;;
 	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
 	*[^$count]*|"") echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Interfaz;;
 esac
