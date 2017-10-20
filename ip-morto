@@ -21,15 +21,22 @@
 ##########################Cambios################################
 #################################################################
 #																#
-#version 1.5                                                    #
+# #version 1.5                                                  #
 #																#
-#Se añadido nmap a la busqueda de ip							#
+# #Se añadido nmap a la busqueda de ip							#
+#																#
+#################################################################
+# 																#
+# #version 2.0													#
+#																#
+# #reparacion de errores										#
+# #se añadio el tipo de chip de las interfazes					#
+# #añadido servidor en el ataque								#
 #																#
 #################################################################
 
 rm -R /tmp/ip-morto 2>/dev/null 
 mkdir /tmp/ip-morto 2>/dev/null 
-
 
 Titulo(){
 	
@@ -46,15 +53,51 @@ echo -e "\e[0;31m
                                                                  
 "
 echo 
-echo -e "\e[0;31m 			version 1.5"
+echo -e "\e[0;31m 			version 2.0"
+echo
+echo -e "\e[0;31m         por aka-kuro para seguridad wireless"
+echo
 echo
 tput sgr0
 sleep 0.5
 
 }
+root(){
+if ! [ $(id -u) = 0 ]; then 
+	echo "El script necesita acceso root" 
+exit 1 
+fi
 
+}
+Conexion(){
+if ping -c1 google.com &>/dev/null ; then
+	echo -en "\e[0;37m Ejecutando script, tienes conexion a internet"
+	echo 
+	echo
+else
+	echo -en "\e[0;37m No tienes conexion a internet, saliendo del programa"
+	echo
+fi
+
+}
+Actualizazion(){
+echo -en  "\e[0;37m Descargando actualizazion del script"
+echo 
+echo
+update=$( wget https://raw.githubusercontent.com/aka-kuro/script/master/ip-morto -O /tmp/ip-morto/ip-morto 2>/dev/null  )
+if $update ; then
+	mv /tmp/ip-morto/ip-morto /usr/bin/ 2>/dev/null
+	chmod +x /usr/bin/ip-morto 2>/dev/null
+	echo -en  "\e[0;37m Actualizacion completada"
+	echo 
+else
+	echo -en "\e[0;37m Error al descargar archivo"
+	echo
+fi
+
+}
 Comprobacion(){
-echo -en "\e[0;37m	  Programas"
+echo -en "\e[0;37m Programas"
 echo 
 
 echo -en "\e[0;32m hping3......."
@@ -102,11 +145,10 @@ else
 fi
 sleep 0.2
 
+
 echo
 echo -en "\e[0;37m Escriba .exit para salir del programa"
 echo 
-echo -en "\e[0;37m Si desa repetir la busqueda escriba .repit"
-echo
 echo -en "\e[0;32m Presione enter para continuar\e[0;37m  " && read enter
 
 case $enter in
@@ -121,23 +163,31 @@ clear
 Titulo
 
 rm -rf /tmp/ip-morto/Interfaz 2>/dev/null
+rm -rf /tmp/ip-morto/chip 2>/dev/null
+rm -rf /tmp/ip-morto/interfaz 2>/dev/null
 
-Inter=$( ip link show | grep ^[0-9] | grep -v lo | cut -f2 -d":"| sed 's/^[ \t]*//' > /tmp/ip-morto/Interfaz 2>/dev/null )
+Inter=$( ip link show | grep ^[0-9] | grep -v lo | cut -f2 -d":"| sed 's/^[ \t]*//' | sort > /tmp/ip-morto/Interfaz 2>/dev/null )
+chip=$( lsusb | grep -i wire |cut -f3 -d":"|awk '{ print $2" "$3" "$4" "$5" "$6" "$7" "$8" "$9 }'  2>/dev/null ) 
+chip2=$( lspci | grep Ethernet |cut -f3 -d":" > /tmp/ip-morto/chip2 2>/dev/null)
+unir=$( paste -d " "  /tmp/ip-morto/Interfaz /tmp/ip-morto/chip2 > /tmp/ip-morto/interfaz 2>/dev/null )
+unir2=$(  sed -i "2 s|$|$chip|" /tmp/ip-morto/interfaz 2>/dev/null  )
+inter=$( cat /tmp/ip-morto/interfaz 2>/dev/null )
 
 count=0 
-while read Inter; do 
+while read inter; do 
 	count=$((++count)) 
-	echo -e "\e[0;31m $count \e[0;37m $Inter" 
-done < /tmp/ip-morto/Interfaz
+	echo -e "\e[0;31m $count \e[0;37m $inter"
+done < /tmp/ip-morto/interfaz
 
 echo
-echo -en "\e[0;32m Seleccione el numero de la interfaz a auditar\e[0;31m =>\e[0;37m " && read interfaz
+echo -en "\e[0;32m Seleccione la interfaz\e[0;31m =>\e[0;37m " && read interfaz
+
+sel=$( cat -n /tmp/ip-morto/Interfaz | cut -f1 | paste -sd"|" | sed 's/ //g' )
 
 case $interfaz in
-	[1-2]) INTER=$( head -$interfaz /tmp/ip-morto/Interfaz | tail -1 ); echo; echo  " A seleccionado $INTER"; sleep 02; clear; Titulo; Busqueda;;
-	   22) echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Interfaz;;
+	[$sel]) interfaz=$( head -$interfaz /tmp/ip-morto/Interfaz | tail -1 | awk '{ print $1 }' ); echo; echo " A seleccionado $interfaz"; sleep 02; clear; Titulo; Busqueda;;
 	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
-	*[^$count]*|"") echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Interfaz;;
+	*) echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Interfaz;;
 esac
 
 }
@@ -160,9 +210,9 @@ echo -en "\e[0;32m Seleccione el metodo de busqueda\e[0;31m =>\e[0;37m " && read
 
 case $busqueda in
 	1) echo; echo " A seleccionado nmap"; sleep 02; clear; Titulo; echo " Buscando conexiones puede tardar un poco"; nmap -sP -PR 192.168.0/21 2>/dev/null > /tmp/ip-morto/nmap; awk '/is up/ {print up}; {gsub (/\(|\)/,""); up = $NF}' /tmp/ip-morto/nmap > /tmp/ip-morto/ip; awk '/Address/ {print $3" "$4$5$6$7$8$9}' /tmp/ip-morto/nmap > /tmp/ip-morto/mac; paste -d " " /tmp/ip-morto/ip /tmp/ip-morto/mac > /tmp/ip-morto/objetivo 2>/dev/null;;
-	2) echo; echo " A seleccionado arp-scan"; sleep 02; clear; Titulo; echo " Buscando conexiones puede tardar un poco"; arp-scan --interface=$INTER --localnet 2>/dev/null > /tmp/ip-morto/arp; sed -e '1,2d' -e '/packets/d' -e '/Ending/d' -e '/^$/d' /tmp/ip-morto/arp > /tmp/ip-morto/objetivo 2>/dev/null;;
+	2) echo; echo " A seleccionado arp-scan"; sleep 02; clear; Titulo; echo " Buscando conexiones puede tardar un poco"; arp-scan --interface=$interfaz --localnet 2>/dev/null > /tmp/ip-morto/arp; sed -e '1,2d' -e '/packets/d' -e '/Ending/d' -e '/^$/d' /tmp/ip-morto/arp > /tmp/ip-morto/objetivo 2>/dev/null;;
 	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
-	*[^$count]*|"") echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Busqueda;;
+	*) echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Busqueda;;
 esac
 
 Objetivos
@@ -175,7 +225,8 @@ rm -rf /tmp/ip-morto/objetivos 2>/dev/null
 
 clear
 Titulo
-
+echo -en "\e[0;37m Si desa repetir la busqueda escriba .repit"
+echo
 obj=$( column -t /tmp/ip-morto/objetivo > /tmp/ip-morto/objetivos )
 
 if [ -s /tmp/ip-morto/objetivos ]; then
@@ -195,14 +246,35 @@ fi
 echo
 echo -en "\e[0;32m Seleccione el objetivo a atacar\e[0;31m =>\e[0;37m " && read objetivo
 
+sel=$( cat -n /tmp/ip-morto/objetivos | cut -f1 | paste -sd"|" |  sed 's/ //g' )
 
 case $objetivo in
-	[1-99]) obje=$( head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $1 }' ); echo; echo " A seleccionado $obje"; sleep 02; clear; Titulo; Ataque;;
+	[$sel]) obje=$( head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $1 }' ); echo; echo " A seleccionado $obje"; sleep 02; clear; Titulo; Servidor;;
 	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
 	.repit) clear; Titulo; Busqueda;;
-	*[^$count]*|"") echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Objetivos;;
+	*) echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Objetivos;;
 esac
 
+}
+
+config(){
+
+mkdir /tmp/ip-morto/www
+
+	{
+	echo -e "server.document-root = \"/tmp/ip-morto/www"
+	echo -e "server.modules = ("
+	echo -e "\"mod_cgi\""
+	echo -e ")\n"
+	echo -e "server.port = 80\n"
+	echo -e "index-file.names = ( \"${indexfile}\" )\n"
+	echo -e "server.error-handler-404 = \"/\"\n"
+	echo -e "mimetype.assign = ("
+	echo -e "\".css\" => \"text/css\","
+	echo -e "\".js\" => \"text/javascript\""
+	echo -e ")\n"
+	echo -e "cgi.assign = ( \".htm\" => \"/bin/bash\" )"
+	} >> "/tmp/ip-morto/www/lighttpd.cfg"
 }
 
 Ataque(){
@@ -235,6 +307,9 @@ esac
 }
 
 Titulo
+root
+Conexion
+Actualizazion
 Comprobacion
 Interfaz
 
