@@ -2,7 +2,6 @@
 
 # Este script esta creado por aka-kuro
 #
-# version 2.0
 #################################################################
 #                                                               #
 # # -*- ENCODING: UTF-8 -*-                                     #
@@ -26,12 +25,13 @@
 # #Se añadido nmap a la busqueda de ip							#
 # #Reparacion de errores										#
 # #Se añadio el tipo de chip de las interfazes					#
-# #Añadido servidor en el ataque								#
+# #Añadido actualizaciones      								#
 #																#
 #################################################################
 
 rm -R /tmp/ip-morto 2>/dev/null 
 mkdir /tmp/ip-morto 2>/dev/null 
+version=(2.0)
 
 Titulo(){
 	
@@ -77,11 +77,8 @@ else
 	echo
 	exit 0
 fi
+Comprobacion
 
-}
-
-Actualizacion(){
-	cat "/usr/bin/ip-morto" 2>/dev/null|grep "^# VERSION [0-9]*$"|awk '{print $3}'
 }
 
 Comprobacion(){
@@ -191,6 +188,24 @@ else
 fi
 sleep 0.2
 
+echo -en "\e[0;32m curl.........."
+if ! hash curl  2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
+echo -en "\e[0;32m wget.........."
+if ! hash wget  2>/dev/null ; then
+	echo -e "\e[0;37m No esta instalado"
+	exit 0
+else
+	echo -e "\e[0;37m Esta instalado"
+fi
+sleep 0.2
+
 echo
 echo -en "\e[0;37m Escriba .exit para salir del programa"
 echo 
@@ -199,6 +214,29 @@ echo -en "\e[0;32m Presione cualquier tecla para continuar\e[0;37m  " && read en
 case $enter in
 	.exit) echo; echo -e "\e[0;37m Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
 esac
+
+Actualizacion
+
+}
+
+Actualizacion(){
+clear
+Titulo
+
+web=$( curl -L https://raw.githubusercontent.com/aka-kuro/ip-morto/master/ip-morto 2>/dev/null|grep "version" | awk '{print $3}' | bc )
+	if 	((  $(echo "$web == $version" | bc -l ) )); then
+	echo -en "\e[0;37m Tienes la version $version que es la mas moderna"
+	echo 
+	echo
+else
+	echo -en "\e[0;37m No tienes actualizado el script actualizando a la ultima version"
+	echo
+	echo
+	wget -N https://raw.githubusercontent.com/aka-kuro/ip-morto/master/ip-morto -P /usr/bin/ 2>/dev/null
+fi
+sleep 03
+
+Interfaz
 
 }
 
@@ -254,7 +292,7 @@ echo
 echo -en "\e[0;32m Seleccione el metodo de busqueda\e[0;31m =>\e[0;37m " && read busqueda
 
 case $busqueda in
-	1) echo; echo " A seleccionado nmap"; sleep 02; clear; Titulo; echo " Buscando conexiones puede tardar un poco"; nmap -sP -PR 192.168.0/21 2>/dev/null > /tmp/ip-morto/nmap; awk '/is up/ {print up}; {gsub (/\(|\)/,""); up = $NF}' /tmp/ip-morto/nmap > /tmp/ip-morto/ip; awk '/Address/ {print $3" "$4$5$6$7$8$9}' /tmp/ip-morto/nmap > /tmp/ip-morto/mac; paste -d " " /tmp/ip-morto/ip /tmp/ip-morto/mac > /tmp/ip-morto/objetivo 2>/dev/null;;
+	1) echo; echo " A seleccionado nmap"; sleep 02; clear; Titulo; echo " Buscando conexiones puede tardar un poco"; nmap -e $interfaz -sP -PR 192.168.0/21 2>/dev/null > /tmp/ip-morto/nmap; awk '/is up/ {print up}; {gsub (/\(|\)/,""); up = $NF}' /tmp/ip-morto/nmap > /tmp/ip-morto/ip; awk '/Address/ {print $3" "$4$5$6$7$8$9}' /tmp/ip-morto/nmap > /tmp/ip-morto/mac; paste -d " " /tmp/ip-morto/ip /tmp/ip-morto/mac > /tmp/ip-morto/objetivo 2>/dev/null;;
 	2) echo; echo " A seleccionado arp-scan"; sleep 02; clear; Titulo; echo " Buscando conexiones puede tardar un poco"; arp-scan --interface=$interfaz --localnet 2>/dev/null > /tmp/ip-morto/arp; sed -e '1,2d' -e '/packets/d' -e '/Ending/d' -e '/^$/d' /tmp/ip-morto/arp > /tmp/ip-morto/objetivo 2>/dev/null;;
 	.exit) echo; echo " Saliendo del programa"; rm -R /tmp/ip-morto 2>/dev/null; sleep 03; clear; exit 0;;
 	*) echo; echo  " Ingrese un formato válido! Sólo los números que salen listados!"; sleep 03; clear; Titulo; Busqueda;;
@@ -271,14 +309,15 @@ rm -rf /tmp/ip-morto/objetivos 2>/dev/null
 clear
 Titulo
 
-echo -en "\e[0;37m Si desa repetir la busqueda escriba .repit"
-echo
-echo
+
 
 obj=$( column -t /tmp/ip-morto/objetivo > /tmp/ip-morto/objetivos )
 
 if [ -s /tmp/ip-morto/objetivos ]; then
 		count=0 
+	echo -en "\e[0;37m Si desa repetir la busqueda escriba .repit"
+	echo
+	echo
 	while read obj; do 
 		count=$((++count)) 
 		echo -e "\e[0;31m $count \e[0;37m $obj" 
@@ -338,6 +377,5 @@ Titulo
 root
 Conexion
 Actualizacion
-Comprobacion
-Interfaz
+
 
