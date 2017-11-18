@@ -2,6 +2,7 @@
 
 # Este script esta creado por aka-kuro
 #
+# version 2.0
 #################################################################
 #                                                               #
 # # -*- ENCODING: UTF-8 -*-                                     #
@@ -21,17 +22,11 @@
 ##########################Cambios################################
 #################################################################
 #																#
-# #version 1.5                                                  #
 #																#
 # #Se añadido nmap a la busqueda de ip							#
-#																#
-#################################################################
-# 																#
-# #version 2.0													#
-#																#
-# #reparacion de errores										#
-# #se añadio el tipo de chip de las interfazes					#
-# #añadido servidor en el ataque								#
+# #Reparacion de errores										#
+# #Se añadio el tipo de chip de las interfazes					#
+# #Añadido servidor en el ataque								#
 #																#
 #################################################################
 
@@ -53,9 +48,8 @@ echo -e "\e[0;31m
                                                                  
 "
 echo 
-echo -e "\e[0;31m 			version \e[0;37m 2.0"
 echo
-echo -e "\e[0;31m            Por aka-kuro para seguridad wireless"
+echo -e "\e[0;31m           		Por aka-kuro"
 echo
 echo
 tput sgr0
@@ -81,8 +75,13 @@ if ping -c1 google.com &>/dev/null ; then
 else
 	echo -en "\e[0;37m No tienes conexion a internet, saliendo del programa"
 	echo
+	exit 0
 fi
 
+}
+
+Actualizacion(){
+	cat "/usr/bin/ip-morto" 2>/dev/null|grep "^# VERSION [0-9]*$"|awk '{print $3}'
 }
 
 Comprobacion(){
@@ -338,6 +337,7 @@ esac
 Titulo
 root
 Conexion
+Actualizacion
 Comprobacion
 Interfaz
 
