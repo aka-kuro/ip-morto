@@ -188,7 +188,7 @@ else
 fi
 sleep 0.2
 
-echo -en "\e[0;32m curl.........."
+echo -en "\e[0;32m curl........."
 if ! hash curl  2>/dev/null ; then
 	echo -e "\e[0;37m No esta instalado"
 	exit 0
@@ -197,7 +197,7 @@ else
 fi
 sleep 0.2
 
-echo -en "\e[0;32m wget.........."
+echo -en "\e[0;32m wget........."
 if ! hash wget  2>/dev/null ; then
 	echo -e "\e[0;37m No esta instalado"
 	exit 0
@@ -223,8 +223,8 @@ Actualizacion(){
 clear
 Titulo
 
-web=$( curl -L https://raw.githubusercontent.com/aka-kuro/ip-morto/master/ip-morto 2>/dev/null|grep "version" | awk '{print $3}' | bc )
-	if 	((  $(echo "$web == $version" | bc -l ) )); then
+web=$( curl https://raw.githubusercontent.com/aka-kuro/ip-morto/master/ip-morto 2>/dev/null|grep "version=" | cut -f2 -d"("| cut -f1 -d")")
+	if 	((  $( echo "$web == $version" | bc -l ) )); then
 	echo -en "\e[0;37m Tienes la version $version que es la mas moderna"
 	echo 
 	echo
@@ -233,6 +233,7 @@ else
 	echo
 	echo
 	wget -N https://raw.githubusercontent.com/aka-kuro/ip-morto/master/ip-morto -P /usr/bin/ 2>/dev/null
+	chmod +x /usr/bin/ip-morto
 fi
 sleep 03
 
